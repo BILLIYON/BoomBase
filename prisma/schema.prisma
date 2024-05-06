@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -15,15 +16,66 @@ datasource db {
 }
 
 model Post {
-    id        Int      @id @default(autoincrement())
+    id              Int      @id @default(autoincrement())
+    title           String
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+    text            String
+    thumbnailURL    String
+    URL             String
+    mediaIcon       String
+    prevEngagements Int
+    currEngagements Int
+    postUsername    String
+    postUserLogoURL String
+
+    createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
+    createdById String
+
+    tag        Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+    tagId      String
+    LatestPost LatestPost?
+
+    @@index([title])
+}
+
+model LatestPost {
+    id String @id @default(cuid())
+
+    postId Int    @unique
+    tagId  String
+
+    post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+    tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+    id        String   @id @default(cuid())
     name      String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
+    tags Tag[]
+}
 
-    @@index([name])
+model Tag {
+    id         String @id @default(cuid())
+    name       String
+    categoryId String
+
+    category  Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    posts      Post[]
+    LatestTag  LatestTag?
+    LatestPost LatestPost[]
+}
+
+model LatestTag {
+    id    String @id @default(cuid())
+    tagId String @unique
+    tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 }
 
 // Necessary for Next auth
@@ -40,7 +92,8 @@ model Account {
     scope             String?
     id_token          String? // @db.Text
     session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([provider, providerAccountId])
 }
@@ -62,6 +115,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    role          String    @default("user")
 }
 
 model VerificationToken {
