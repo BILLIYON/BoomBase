@@ -1,10 +1,9 @@
-import { Post as DBPost } from "@prisma/client";
-import { VariantProps, cva } from "class-variance-authority";
+import type { Post as DBPost } from "@prisma/client";
+import { type VariantProps, cva } from "class-variance-authority";
 import { Gauge } from "lucide-react";
 import Image from "next/image";
-import { cn } from "~/lib/utils";
-import { ConditionalWrapper } from "./ConditionalWrapper";
 import Link from "next/link";
+import { cn } from "~/lib/utils";
 
 const postCardVariants = cva(
   "p-2 relative rounded shadow-sm bg-white hover:shadow-md transition duration-200 ease-in-out",
@@ -100,4 +99,4 @@ function PostCard({
   );
 }
 
-export { PostUsername, PostCard };
+export { PostCard, PostUsername };
