@@ -27,4 +27,18 @@ export const tagRouter = createTRPCRouter({
       include: { category: true },
     });
   }),
+  getByDatumId: protectedProcedure
+    .input(z.number())
+    .query(async ({ ctx, input }) => {
+      return ctx.db.tag.findMany({
+        where: {
+          statDatums: {
+            some: {
+              id: input,
+            },
+          },
+        },
+        include: { category: true },
+      });
+    }),
 });

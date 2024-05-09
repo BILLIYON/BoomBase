@@ -23,20 +23,33 @@ model Post {
     text            String
     thumbnailURL    String
     URL             String
-    mediaIcon       String
     prevEngagements Int
     currEngagements Int
     postUsername    String
     postUserLogoURL String
+    mediaIcon       String
 
     createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
     createdById String
 
-    tag        Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
-    tagId      String
-    LatestPost LatestPost?
+    tag      Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+    tagId    String
+    isLatest LatestPost?
+
+    statDatums StatisticsDatum[]
 
     @@index([title])
+}
+
+model StatisticsDatum {
+    id Int @id @default(autoincrement())
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    datetime DateTime
+    tags     Tag[]
+    posts    Post[]
 }
 
 model LatestPost {
@@ -67,9 +80,11 @@ model Tag {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    posts      Post[]
-    LatestTag  LatestTag?
-    LatestPost LatestPost[]
+    posts       Post[]
+    isLatest    LatestTag?
+    latestPosts LatestPost[]
+
+    statDatums StatisticsDatum[]
 }
 
 model LatestTag {

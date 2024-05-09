@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { SignOutButton } from "../_components/SignInButton";
-import { Button } from "~/components/ui/button";
-import { Combobox } from "~/components/ui/combobox";
-import { Input } from "~/components/ui/input";
-import { EditablePostCard } from "./EditablePostCard";
-
+import { DataTable } from "./Table";
+import {
+  StatDatumWithPostsAndTags,
+  TagWithCategory,
+  statisticsDatumsColumns,
+  tagsColumns,
+} from "./TableColumns";
+import { Prisma } from "@prisma/client";
 function AdminPage() {
   const utils = api.useUtils();
   const [newTagName, setNewTagName] = useState("");
@@ -51,13 +53,16 @@ function AdminPage() {
 
   console.log("categories", categories);
 
+  const [selectedDatum, setSelectedDatum] =
+    useState<StatDatumWithPostsAndTags>();
+
   return (
     <main>
       <SignOutButton />
 
       <h1>Admin Page</h1>
 
-      <section className=" flex gap-2">
+      {/* <section className=" flex gap-2">
         <div>
           <List
             items={categories ?? []}
@@ -162,9 +167,69 @@ function AdminPage() {
             </li>
           ))}
         </ul>
-      </section>
+      </section> */}
+      <DatumsTable onDatumSelect={setSelectedDatum} />
+      <TagList datumId={selectedDatum?.id} />
+      <PostList tagId={selectedTagId} />
+      {/* <LatestTagsTable />
+      <TagList />
+      <CategoryList /> */}
     </main>
   );
+}
+
+function DatumsTable({
+  onDatumSelect,
+}: {
+  onDatumSelect?: (datum: StatDatumWithPostsAndTags) => void;
+}) {
+  const { data: datums } = api.statistictDatum.getAll.useQuery(undefined, {
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const [selectedRowId, setSelectedRowId] = useState<string>();
+
+  return (
+    <DataTable
+      data={datums ?? []}
+      selectedRowId={selectedRowId}
+      columns={statisticsDatumsColumns}
+      onRowClick={(datum, rowId) => {
+        onDatumSelect?.(datum);
+        setSelectedRowId(rowId);
+      }}
+    />
+  );
+}
+
+function TagList({
+  datumId,
+  onSelectTag,
+}: {
+  datumId?: number;
+  onSelectTag?: (tag: TagWithCategory) => void;
+}) {
+  const { data: tags } = api.tag.getByDatumId.useQuery(datumId ?? 0, {
+    enabled: !!datumId,
+  });
+
+  const [selectedRowId, setSelectedRowId] = useState<string>();
+
+  return (
+    <DataTable
+      columns={tagsColumns}
+      data={tags ?? []}
+      selectedRowId={selectedRowId}
+      onRowClick={(tag, id) => {
+        onSelectTag?.(tag);
+        setSelectedRowId(id);
+      }}
+    />
+  );
+}
+
+function PostList({ tagId }: { tagId?: string }) {
+  return <div>PostList</div>;
 }
 
 function List<T extends Record<string, unknown>>({

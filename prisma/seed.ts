@@ -10,6 +10,7 @@ try {
   await prisma.tag.deleteMany({});
   await prisma.latestTag.deleteMany({});
   await prisma.post.deleteMany({});
+  await prisma.statisticsDatum.deleteMany({});
 
   console.log("seeding user...");
   const user = await prisma.user.create({
@@ -189,8 +190,33 @@ try {
       postId: post.id,
       tagId: post.tagId,
     })),
-  }),
-    console.log("Database seeded successfully");
+  });
+
+  const dateTimeArray = Array.from({ length: 5 }, (_, i) => ({
+    datetime: new Date(2024, 4, 1, i),
+  }));
+
+  await Promise.all(
+    dateTimeArray.map((data) =>
+      prisma.statisticsDatum.create({
+        data: {
+          datetime: data.datetime,
+          posts: {
+            connect: createdPosts
+              .filter(() => Math.random() > 0.5)
+              .map((post) => ({ id: post.id })),
+          },
+          tags: {
+            connect: tags
+              .filter(() => Math.random() > 0.5)
+              .map((tag) => ({ id: tag.id })),
+          },
+        },
+      }),
+    ),
+  );
+
+  console.log("Database seeded successfully");
 } catch (error) {
   console.log("Error seeding database", error);
 }
