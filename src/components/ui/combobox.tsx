@@ -23,10 +23,12 @@ export function Combobox({
   items,
   value,
   onSetValue,
+  className,
 }: {
   items: { value: string; label: React.ReactNode; id: string }[];
   onSetValue: (item: { id: string; name: string }) => void;
   value: string;
+  className?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   // const [value, setValue] = React.useState("");
@@ -38,7 +40,7 @@ export function Combobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className={cn("w-[200px] justify-between", className)}
         >
           {value
             ? items.find((item) => item.value === value)?.label

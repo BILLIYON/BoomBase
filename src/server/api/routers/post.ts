@@ -1,15 +1,11 @@
-import type { Prisma } from "@prisma/client";
 import { z } from "zod";
+import _ from "lodash";
 
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
-
-type TagWithCategory = Prisma.TagGetPayload<{
-  include: { category: true };
-}>;
 
 export const postRouter = createTRPCRouter({
   create: protectedProcedure
@@ -50,27 +46,25 @@ export const postRouter = createTRPCRouter({
       });
     }),
   getLatestPosts: publicProcedure.query(async ({ ctx }) => {
-    const latestPosts = await ctx.db.latestPost.findMany({
-      include: {
-        post: {
+    const lastTwoDatums = await ctx.db.datum.findMany({
+      take: 2,
+      orderBy: {
+        dateTime: "desc",
+      },
+      select: {
+        dateTime: true,
+        postEngagements: {
           include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                category: {
+            post: {
+              include: {
+                tag: {
                   select: {
                     name: true,
-                  },
-                },
-              },
-            },
-            category: true,
-            postEngagements: {
-              select: {
-                datum: {
-                  select: {
-                    dateTime: true,
+                    category: {
+                      select: {
+                        name: true,
+                      },
+                    },
                   },
                 },
               },
@@ -79,9 +73,65 @@ export const postRouter = createTRPCRouter({
         },
       },
     });
-    return latestPosts.map((latestPost) => ({
-      ...latestPost.post,
-    }));
+
+    console.log("lastTwoDatums", lastTwoDatums);
+
+    const prevPosts =
+      lastTwoDatums[1]?.postEngagements?.map((postEngagement) => ({
+        ...postEngagement.post,
+        engagementsCount: postEngagement.amount,
+      })) ?? [];
+    const currentPosts =
+      lastTwoDatums[0]?.postEngagements?.map((postEngagement) => ({
+        ...postEngagement.post,
+        engagementsCount: postEngagement.amount,
+      })) ?? [];
+
+    const prevTimestamp = lastTwoDatums[1]?.dateTime;
+    const currentTimestamp = lastTwoDatums[0]?.dateTime;
+
+    const differenceInTimestampsInHours =
+      ((currentTimestamp?.getTime() ?? 0) - (prevTimestamp?.getTime() ?? 0)) /
+      1000 /
+      60 /
+      60;
+
+    const postIdsInPrevAndCurrent = _.intersectionBy(
+      prevPosts,
+      currentPosts,
+      "id",
+    ).map((post) => post.id);
+
+    const postsWithEngPerHour = postIdsInPrevAndCurrent.map((postId) => {
+      const prevPost = prevPosts.find((post) => post.id === postId);
+      const currentPost = currentPosts.find((post) => post.id === postId);
+      const engagementsCountDiff =
+        (currentPost?.engagementsCount ?? 0) -
+        (prevPost?.engagementsCount ?? 0);
+      return {
+        ...currentPost,
+        tag: currentPost?.tag?.name ?? "",
+        category: currentPost?.tag.category.name ?? "",
+        engagementsPerHour: differenceInTimestampsInHours
+          ? engagementsCountDiff / differenceInTimestampsInHours
+          : 0,
+      };
+    });
+
+    const newPosts = _.differenceBy(currentPosts, prevPosts, "id").map(
+      (post) => {
+        const tagName = post.tag?.name ?? "";
+        const categoryName = post.tag?.category?.name ?? "";
+        return {
+          ...post,
+          tag: tagName,
+          category: categoryName,
+          engagementsPerHour: -1,
+        };
+      },
+    );
+
+    return [...postsWithEngPerHour, ...newPosts];
   }),
 
   getLatestPostsForTag: protectedProcedure
@@ -190,27 +240,49 @@ export const postRouter = createTRPCRouter({
         },
       });
     }),
-  getAllPostsForTag: protectedProcedure
-    .input(z.object({ tagId: z.string().nullable() }))
-    .query(async ({ ctx, input }) => {
-      if (!input.tagId) {
-        return [];
-      }
-      const posts = await ctx.db.tag
-        .findUnique({
-          where: {
-            id: input.tagId,
-          },
-        })
-        .posts();
 
-      return posts;
-    }),
   getById: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
-    return ctx.db.post.findUnique({
+    const post = await ctx.db.post.findUnique({
       where: {
         id: input,
       },
+      include: {
+        postEngagements: {
+          orderBy: {
+            datum: {
+              dateTime: "desc",
+            },
+          },
+          select: {
+            amount: true,
+            datum: {
+              select: {
+                dateTime: true,
+              },
+            },
+          },
+          take: 2,
+        },
+      },
     });
+
+    const timeDeltaInHours =
+      ((post?.postEngagements[0]?.datum.dateTime.getTime() ?? 0) -
+        (post?.postEngagements[1]?.datum.dateTime.getTime() ?? 0)) /
+      1000 /
+      60 /
+      60;
+
+    const engagementsDelta =
+      (post?.postEngagements[0]?.amount ?? 0) -
+      (post?.postEngagements[1]?.amount ?? 0);
+
+    const { postEngagements, ...postData } = post;
+    return {
+      ...postData,
+      engagementsPerHour: timeDeltaInHours
+        ? engagementsDelta / timeDeltaInHours
+        : -1,
+    };
   }),
 });

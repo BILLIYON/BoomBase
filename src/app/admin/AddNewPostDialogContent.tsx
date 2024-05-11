@@ -44,9 +44,11 @@ const existingPostsColumns = [
 ];
 
 function ExistingPostsForThisTagTable({
+  alreadyAddedPostIds,
   onPostSelect,
   selectedRowId,
 }: {
+  alreadyAddedPostIds: string[];
   onPostSelect?: (postId: string) => void;
   selectedRowId?: string;
 }) {
@@ -59,7 +61,7 @@ function ExistingPostsForThisTagTable({
   return (
     <DataTable
       className=" text-xs"
-      data={posts ?? []}
+      data={posts?.filter((p) => !alreadyAddedPostIds.includes(p.id)) ?? []}
       columns={existingPostsColumns}
       selectedRowId={selectedRowId}
       onRowClick={(post) => {
@@ -113,6 +115,12 @@ function AddNewPostDialogContent({
     },
   );
 
+  const { data: alreadyAddedPosts } = api.post.getLatestPostsForTag.useQuery({
+    tagId: useStore((state) => state.selectedTagId) ?? "",
+  });
+
+  const alreadyAddedPostsIds = alreadyAddedPosts?.map((p) => p.id) ?? [];
+
   return (
     <div className=" flex w-full flex-col gap-4">
       <Button
@@ -143,6 +151,7 @@ function AddNewPostDialogContent({
           <AccordionTrigger>Existing posts</AccordionTrigger>
           <AccordionContent>
             <ExistingPostsForThisTagTable
+              alreadyAddedPostIds={alreadyAddedPostsIds}
               selectedRowId={selectedExistingPostId}
               onPostSelect={(postId) => setSelectedExistingPostId(postId)}
             />

@@ -36,8 +36,9 @@ const postUsernameVariants = cva("flex ", {
 
 interface PostCardProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "title" | "id">,
-    VariantProps<typeof postCardVariants>,
-    DBPost {}
+    VariantProps<typeof postCardVariants> {
+  post: DBPost & { engagementsPerHour: number };
+}
 
 interface PostUsernameProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -54,44 +55,88 @@ function PostUsername({
 }: PostUsernameProps) {
   return (
     <div className={cn(postUsernameVariants({ variant }), className)}>
-      <Image src={logoURL} alt={name} width={50} height={0} />
+      <Image src={logoURL} alt={name} width={35} height={0} />
       <span>{name}</span>
     </div>
   );
 }
 
-function PostCard({
-  id,
-  variant,
-  className,
-  thumbnailURL,
-  title,
-  text,
-  postUserLogoURL,
-  postUsername,
-  prevEngagements,
-  currEngagements,
-}: PostCardProps) {
+function PostCard({ post, variant, className }: PostCardProps) {
   const content = (
     <div className={cn(postCardVariants({ variant }), className)}>
-      <Image src={thumbnailURL} alt={title} width={200} height={0} />
-      <h2>{title}</h2>
-      <PostUsername
-        logoURL={postUserLogoURL}
-        name={postUsername}
-        variant={variant}
-      />
-      {variant === "large" ? <p>{text}</p> : null}
-      <div className=" flex items-center gap-2">
-        <Gauge size={variant === "large" ? 15 : 10} />
-        <span>{currEngagements - prevEngagements} eng/hr</span>
-      </div>
+      {variant === "large" ? (
+        <div className=" flex flex-col gap-2">
+          <section className=" flex gap-4">
+            <div className=" relative">
+              <Image
+                src={post.thumbnailURL}
+                alt={post.title}
+                width={0}
+                height={0}
+                className=" block w-auto max-w-[300px] flex-1"
+              />
+              <div className=" absolute right-2 top-1">{post.mediaIcon}</div>
+            </div>
+            <div>
+              <h2>{post.title}</h2>
+              <p>{post.text}</p>
+              <PostUsername
+                logoURL={post.postUserLogoURL}
+                name={post.postUsername}
+                variant={variant}
+              />
+              <div className=" flex items-center gap-2">
+                <Gauge size={15} />
+                {post.engagementsPerHour >= 0 ? (
+                  <div className=" flex gap-1">
+                    <span>{Math.round(post.engagementsPerHour)}</span>
+                    <span>eng/hr</span>
+                  </div>
+                ) : (
+                  "new"
+                )}
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : (
+        <>
+          <div className=" relative">
+            <Image
+              src={post.thumbnailURL}
+              alt={post.title}
+              width={0}
+              height={0}
+              className=" block w-auto max-w-[150px] flex-1"
+            />
+            <div className=" absolute right-2 top-1">{post.mediaIcon}</div>
+          </div>
+          <h2>{post.title}</h2>
+          <PostUsername
+            logoURL={post.postUserLogoURL}
+            name={post.postUsername}
+            variant={variant}
+          />
+
+          <div className=" flex items-center gap-2">
+            <Gauge size={15} />
+            {post.engagementsPerHour >= 0 ? (
+              <div className=" flex gap-1">
+                <span>{Math.round(post.engagementsPerHour)}</span>
+                <span>eng/hr</span>
+              </div>
+            ) : (
+              "new"
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
   return (
     <>
       {variant === "small" ? (
-        <Link href={`/posts/${id}`}>{content}</Link>
+        <Link href={`/posts/${post.id}`}>{content}</Link>
       ) : (
         content
       )}

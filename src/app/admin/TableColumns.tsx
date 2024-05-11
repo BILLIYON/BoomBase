@@ -1,4 +1,4 @@
-import type { Datum, Post, Prisma } from "@prisma/client";
+import type { Category, Datum, Post, Prisma } from "@prisma/client";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Button } from "~/components/ui/button";
 import { Combobox } from "~/components/ui/combobox";
@@ -7,6 +7,18 @@ import { useStore } from "./store";
 import type { WithId } from "~/types/common.types";
 import { TrashIcon } from "lucide-react";
 import { AddNewPostDialog } from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/ui/form";
 
 export type StatDatumWithPostsAndTags = Datum & {
   postsCount: number;
@@ -138,6 +150,19 @@ const tagsColumns = [
   }),
 ];
 
+const allTagsColumns = [
+  tagTableHelper.accessor("name", {
+    id: "name",
+    header: "Name",
+    cell: (row) => row.getValue(),
+  }),
+  tagTableHelper.accessor("category", {
+    id: "category",
+    header: "Category",
+    cell: (row) => row.getValue(),
+  }),
+];
+
 export type TablePost = Post;
 
 const postColumnHelper = createColumnHelper<TablePost>();
@@ -177,6 +202,99 @@ const postsColumns = [
     header: "Thumbnail URL",
     cell: (row) => row.getValue(),
   }),
+  postColumnHelper.display({
+    id: "actions",
+    header: "Actions",
+    cell: function Cell(ctx) {
+      const utils = api.useUtils();
+
+      const { mutate: deletePost } =
+        api.post.deletePostWithEngagementForDatum.useMutation({
+          onSettled: async () => {
+            await utils.post.getPostsForTagAndDatum.invalidate();
+            await utils.statistictDatum.getAll.invalidate();
+          },
+        });
+
+      const selectedDatumId = useStore((state) => state.selectedDatumId);
+
+      return (
+        <Button
+          variant={"ghost"}
+          onClick={() => {
+            if (!selectedDatumId) return;
+            deletePost({
+              datumId: selectedDatumId,
+              postId: ctx.row.original.id,
+            });
+          }}
+        >
+          <TrashIcon size={15} />
+        </Button>
+      );
+    },
+  }),
 ];
 
-export { postsColumns, statisticsDatumsColumns, tagsColumns };
+const categoriesColumnsHelper = createColumnHelper<Category>();
+
+const categorySchema = z.object({
+  name: z.string().min(1).max(255),
+});
+
+const categoriesColumns = [
+  categoriesColumnsHelper.accessor("name", {
+    id: "name",
+    header: "Name",
+    cell: (row) => row.getValue(),
+    footer: function Footer() {
+      const utils = api.useUtils();
+      const { mutate: addCategory } = api.category.create.useMutation({
+        onSettled: async () => {
+          await utils.category.getAll.invalidate();
+        },
+      });
+
+      const form = useForm<z.infer<typeof categorySchema>>({
+        resolver: zodResolver(categorySchema),
+      });
+
+      return (
+        <>
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit((data) => {
+                addCategory(data);
+              })}
+              className=" flex items-center gap-2"
+            >
+              <FormField
+                name="name"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input className=" h-4" placeholder="shadcn" {...field} />
+                    </FormControl>
+                    <FormMessage className=" max-w-32 text-xs" />
+                  </FormItem>
+                )}
+              />
+              <Button size={"sm"} type="submit">
+                Add New
+              </Button>
+            </form>
+          </Form>
+        </>
+      );
+    },
+  }),
+];
+
+export {
+  postsColumns,
+  statisticsDatumsColumns,
+  tagsColumns,
+  categoriesColumns,
+  allTagsColumns,
+};

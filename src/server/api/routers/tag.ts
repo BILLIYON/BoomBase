@@ -23,9 +23,23 @@ export const tagRouter = createTRPCRouter({
       });
     }),
   getAll: publicProcedure.query(async ({ ctx }) => {
-    return ctx.db.tag.findMany({
-      include: { category: true },
+    const tags = await ctx.db.tag.findMany({
+      select: {
+        name: true,
+        id: true,
+        category: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
+
+    return tags.map((tag) => ({
+      id: tag.id,
+      name: tag.name,
+      category: tag.category.name,
+    }));
   }),
   getByDatumId: protectedProcedure
     .input(z.object({ datumId: z.string().min(1) }))
