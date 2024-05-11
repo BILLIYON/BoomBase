@@ -1,10 +1,11 @@
 "use client";
 
 import {
-  type ColumnDef,
+  RowSelectionState,
   flexRender,
   getCoreRowModel,
   useReactTable,
+  type ColumnDef,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -17,30 +18,38 @@ import {
 } from "~/components/ui/table";
 import { cn } from "~/lib/utils";
 
-interface TableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
+interface TableProps<TData extends object> {
+  columns: ColumnDef<TData, any>[];
   data: TData[];
   isLoading?: boolean;
   showFooter?: boolean;
   selectedRowId?: string;
+  rowSelection?: RowSelectionState;
   onRowClick?: (row: TData, rowId: string) => void;
+  className?: string;
 }
 
-function DataTable<TData, TValue>({
+function DataTable<TData extends { id: string | number }>({
   data,
   columns,
   showFooter = false,
   selectedRowId,
+  className,
   onRowClick,
-}: TableProps<TData, TValue>) {
+  rowSelection,
+}: TableProps<TData>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.id?.toString() || "",
+    state: {
+      rowSelection,
+    },
   });
 
   return (
-    <Table>
+    <Table className={className}>
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
@@ -61,10 +70,10 @@ function DataTable<TData, TValue>({
         {table.getRowModel().rows.map((row) => (
           <TableRow
             key={row.id}
-            data-state={row.getIsSelected() && "selected"}
+            // data-state={row?.getIsSelected() && "selected"}
             className={cn("cursor-pointer", {
               "bg-blue-500 text-white hover:bg-blue-600":
-                row.id === selectedRowId,
+                row.original.id === selectedRowId,
             })}
             onClick={() => {
               onRowClick?.(row.original, row.id);

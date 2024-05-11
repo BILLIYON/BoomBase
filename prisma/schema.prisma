@@ -15,16 +15,70 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+model Datum {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    dateTime  DateTime
+
+    tags            Tag[]
+    postEngagements PostEngagement[]
+}
+
+model Tag {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    name      String
+
+    datums     Datum[]
+    posts      Post[]
+    category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+    categoryId String
+}
+
+model Category {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    name      String
+
+    posts Post[]
+    tags  Tag[]
+}
+
+model PostEngagement {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    amount    Int
+
+    post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+    postId String
+
+    datum   Datum  @relation(fields: [datumId], references: [id], onDelete: Cascade)
+    datumId String
+}
+
+model LatestPost {
+    id        String   @id @default(cuid())
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+    postId String
+
+    @@index([postId])
+}
+
 model Post {
-    id              Int      @id @default(autoincrement())
+    id              String   @id @default(cuid())
     title           String
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt
     text            String
     thumbnailURL    String
     URL             String
-    prevEngagements Int
-    currEngagements Int
     postUsername    String
     postUserLogoURL String
     mediaIcon       String
@@ -32,65 +86,14 @@ model Post {
     createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Cascade)
     createdById String
 
-    tag      Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
-    tagId    String
-    isLatest LatestPost?
-
-    statDatums StatisticsDatum[]
+    tag             Tag              @relation(fields: [tagId], references: [id], onDelete: Cascade)
+    tagId           String
+    postEngagements PostEngagement[]
+    category        Category?        @relation(fields: [categoryId], references: [id])
+    categoryId      String?
+    latestPost      LatestPost[]
 
     @@index([title])
-}
-
-model StatisticsDatum {
-    id Int @id @default(autoincrement())
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    datetime DateTime
-    tags     Tag[]
-    posts    Post[]
-}
-
-model LatestPost {
-    id String @id @default(cuid())
-
-    postId Int    @unique
-    tagId  String
-
-    post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-    tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
-}
-
-model Category {
-    id        String   @id @default(cuid())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    tags Tag[]
-}
-
-model Tag {
-    id         String @id @default(cuid())
-    name       String
-    categoryId String
-
-    category  Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    posts       Post[]
-    isLatest    LatestTag?
-    latestPosts LatestPost[]
-
-    statDatums StatisticsDatum[]
-}
-
-model LatestTag {
-    id    String @id @default(cuid())
-    tagId String @unique
-    tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 }
 
 // Necessary for Next auth

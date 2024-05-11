@@ -28,17 +28,33 @@ export const tagRouter = createTRPCRouter({
     });
   }),
   getByDatumId: protectedProcedure
-    .input(z.number())
+    .input(z.object({ datumId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      return ctx.db.tag.findMany({
+      const datum = await ctx.db.datum.findUnique({
         where: {
-          statDatums: {
-            some: {
-              id: input,
+          id: input.datumId,
+        },
+        include: {
+          tags: {
+            select: {
+              id: true,
+              name: true,
+              category: {
+                select: {
+                  name: true,
+                },
+              },
             },
           },
         },
-        include: { category: true },
       });
+
+      return (
+        datum?.tags.map((tag) => ({
+          id: tag.id,
+          name: tag.name,
+          category: tag.category.name,
+        })) ?? []
+      );
     }),
 });

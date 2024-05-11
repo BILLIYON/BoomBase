@@ -24,9 +24,9 @@ export function Combobox({
   value,
   onSetValue,
 }: {
-  items: { label: string; value: string }[];
-  value: string | undefined;
-  onSetValue: (value: string | undefined) => void;
+  items: { value: string; label: React.ReactNode; id: string }[];
+  onSetValue: (item: { id: string; name: string }) => void;
+  value: string;
 }) {
   const [open, setOpen] = React.useState(false);
   // const [value, setValue] = React.useState("");
@@ -55,10 +55,11 @@ export function Combobox({
               {items?.map((item, index) => (
                 <CommandItem
                   key={item.value}
-                  value={item.label}
-                  onSelect={() => {
-                    const v = items[index]?.value;
-                    onSetValue(v === value ? "" : v);
+                  value={item.value}
+                  onSelect={(currentValue) => {
+                    if (currentValue !== value) {
+                      onSetValue({ id: item.id, name: item.value });
+                    }
                     setOpen(false);
                   }}
                 >

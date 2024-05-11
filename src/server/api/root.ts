@@ -1,7 +1,6 @@
 import { postRouter } from "~/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { tagRouter } from "./routers/tag";
-import { latestTagRouter } from "./routers/latestTag";
 import { categoryRouter } from "./routers/category";
 import { statisticsDatumRouter } from "./routers/statisticsDatum";
 
@@ -13,7 +12,6 @@ import { statisticsDatumRouter } from "./routers/statisticsDatum";
 export const appRouter = createTRPCRouter({
   post: postRouter,
   tag: tagRouter,
-  latestTag: latestTagRouter,
   category: categoryRouter,
   statistictDatum: statisticsDatumRouter,
 });
