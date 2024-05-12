@@ -5,5 +5,9 @@ export const metadata = {
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <main className=" flex justify-center px-[200px]">{children}</main>;
+  return (
+    <main className=" flex justify-center md:px-52 lg:px-[200px]">
+      {children}
+    </main>
+  );
 }

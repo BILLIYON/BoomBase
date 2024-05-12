@@ -5,7 +5,7 @@ import { Combobox } from "~/components/ui/combobox";
 import { api } from "~/trpc/react";
 import { useStore } from "./store";
 import type { WithId } from "~/types/common.types";
-import { TrashIcon } from "lucide-react";
+import { LinkIcon, TrashIcon } from "lucide-react";
 import { AddNewPostDialog } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -19,6 +19,8 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import Link from "next/link";
+import Image from "next/image";
 
 export type StatDatumWithPostsAndTags = Datum & {
   postsCount: number;
@@ -185,7 +187,10 @@ const postsColumns = [
   postColumnHelper.accessor("text", {
     id: "text",
     header: "Text",
-    cell: (row) => row.getValue(),
+    cell: (row) =>
+      row.getValue().length > 50
+        ? row.getValue().slice(0, 50) + "..."
+        : row.getValue(),
   }),
   postColumnHelper.accessor("mediaIcon", {
     id: "mediaIcon",
@@ -195,12 +200,24 @@ const postsColumns = [
   postColumnHelper.accessor("URL", {
     id: "URL",
     header: "URL",
-    cell: (row) => row.getValue(),
+    cell: (row) => (
+      <Link className=" text-balance" href={row.getValue()}>
+        <LinkIcon />
+      </Link>
+    ),
   }),
   postColumnHelper.accessor("thumbnailURL", {
     id: "thumbnailURL",
     header: "Thumbnail URL",
-    cell: (row) => row.getValue(),
+    cell: (row) => (
+      <Image
+        src={row.getValue()}
+        height={100}
+        width={100}
+        alt={row.row.original.title}
+        className=" max-h-20"
+      />
+    ),
   }),
   postColumnHelper.display({
     id: "actions",

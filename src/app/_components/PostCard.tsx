@@ -66,14 +66,14 @@ function PostCard({ post, variant, className }: PostCardProps) {
     <div className={cn(postCardVariants({ variant }), className)}>
       {variant === "large" ? (
         <div className=" flex flex-col gap-2">
-          <section className=" flex gap-4">
+          <section className=" flex flex-col gap-4 md:flex-row">
             <div className=" relative">
               <Image
                 src={post.thumbnailURL}
                 alt={post.title}
-                width={0}
+                width={300}
                 height={0}
-                className=" block w-auto max-w-[300px] flex-1"
+                className=" block min-w-40 md:min-w-[300px] "
               />
               <div className=" absolute right-2 top-1">{post.mediaIcon}</div>
             </div>
@@ -105,9 +105,9 @@ function PostCard({ post, variant, className }: PostCardProps) {
             <Image
               src={post.thumbnailURL}
               alt={post.title}
-              width={0}
+              width={200}
               height={0}
-              className=" block w-auto max-w-[150px] flex-1"
+              className=" block flex-1"
             />
             <div className=" absolute right-2 top-1">{post.mediaIcon}</div>
           </div>

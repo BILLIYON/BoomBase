@@ -26,6 +26,7 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { useState } from "react";
+import Image from "next/image";
 
 const existingPostsColumnsHelper = createColumnHelper<Post>();
 const existingPostsColumns = [
@@ -39,7 +40,15 @@ const existingPostsColumns = [
   }),
   existingPostsColumnsHelper.accessor("thumbnailURL", {
     header: "Thumbnail URL",
-    cell: (row) => <div>{row.getValue()}</div>,
+    cell: (row) => (
+      <Image
+        src={row.getValue()}
+        height={0}
+        width={0}
+        alt={row.row.original.title}
+        className="h-10 w-auto"
+      />
+    ),
   }),
 ];
 
