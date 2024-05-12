@@ -4,6 +4,7 @@ import { Gauge } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "~/lib/utils";
+import { SocialMediaIcon } from "./SocialMediaIcon";
 
 const postCardVariants = cva(
   "p-2 relative rounded shadow-sm bg-white hover:shadow-md transition duration-200 ease-in-out",
@@ -75,7 +76,10 @@ function PostCard({ post, variant, className }: PostCardProps) {
                 height={0}
                 className=" block min-w-40 md:min-w-[300px] "
               />
-              <div className=" absolute right-2 top-1">{post.mediaIcon}</div>
+              <SocialMediaIcon
+                name={post.mediaIcon}
+                className="absolute right-2 top-1"
+              />
             </div>
             <div>
               <h2>{post.title}</h2>
@@ -109,7 +113,10 @@ function PostCard({ post, variant, className }: PostCardProps) {
               height={0}
               className=" block flex-1"
             />
-            <div className=" absolute right-2 top-1">{post.mediaIcon}</div>
+            <SocialMediaIcon
+              name={post.mediaIcon}
+              className="absolute right-2 top-1"
+            />
           </div>
           <h2>{post.title}</h2>
           <PostUsername
