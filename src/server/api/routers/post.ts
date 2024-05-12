@@ -6,6 +6,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
+import { TRPCError } from "@trpc/server";
 
 export const postRouter = createTRPCRouter({
   create: protectedProcedure
@@ -266,6 +267,8 @@ export const postRouter = createTRPCRouter({
       },
     });
 
+    if (!post) throw new TRPCError({ code: "NOT_FOUND" });
+
     const timeDeltaInHours =
       ((post?.postEngagements[0]?.datum.dateTime.getTime() ?? 0) -
         (post?.postEngagements[1]?.datum.dateTime.getTime() ?? 0)) /
@@ -278,6 +281,7 @@ export const postRouter = createTRPCRouter({
       (post?.postEngagements[1]?.amount ?? 0);
 
     const { postEngagements, ...postData } = post;
+
     return {
       ...postData,
       engagementsPerHour: timeDeltaInHours
