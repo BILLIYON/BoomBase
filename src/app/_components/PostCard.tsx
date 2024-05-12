@@ -124,7 +124,6 @@ function PostCard({ post, variant, className }: PostCardProps) {
             name={post.postUsername}
             variant={variant}
           />
-
           <div className=" flex items-center gap-2">
             <Gauge size={15} />
             {post.engagementsPerHour >= 0 ? (
