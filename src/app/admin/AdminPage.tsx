@@ -207,6 +207,7 @@ function DatumsTable() {
     <DataTable
       data={datums ?? []}
       selectedRowId={selectedDatumId ?? ""}
+      //@ts-expect-error tanstack types are weird
       columns={statisticsDatumsColumns}
       showFooter={true}
       onRowClick={(datum) => {
@@ -234,6 +235,7 @@ function TagList() {
 
   return (
     <DataTable
+      //@ts-expect-error tanstack types are weird
       columns={tagsColumns}
       data={tags ?? []}
       selectedRowId={selectedTagId ?? ""}
@@ -260,6 +262,7 @@ function LatestPostList() {
     <DataTable
       showFooter={true}
       data={postsForTagAndDatum ?? []}
+      //@ts-expect-error tanstack types are weird
       columns={postsColumns}
     />
   );

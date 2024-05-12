@@ -18,8 +18,8 @@ import {
 } from "~/components/ui/table";
 import { cn } from "~/lib/utils";
 
-interface TableProps<TData extends object> {
-  columns: ColumnDef<TData, any>[];
+interface TableProps<TData extends object, TValue> {
+  columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading?: boolean;
   showFooter?: boolean;
@@ -29,7 +29,7 @@ interface TableProps<TData extends object> {
   className?: string;
 }
 
-function DataTable<TData extends { id: string | number }>({
+function DataTable<TData extends { id: string | number }, TValue>({
   data,
   columns,
   showFooter = false,
@@ -37,7 +37,7 @@ function DataTable<TData extends { id: string | number }>({
   className,
   onRowClick,
   rowSelection,
-}: TableProps<TData>) {
+}: TableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
