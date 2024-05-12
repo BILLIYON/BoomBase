@@ -58,14 +58,14 @@ export default function Home() {
 
     const grouped = latestPosts.reduce(
       (acc, post) => {
-        const key = post[sortingBy];
+        const key = post[sortingBy!] ?? "undefined";
         if (!acc[key]) {
           acc[key] = [];
         }
-        acc[key].push(post);
+        acc[key]?.push(post as Post & { engagementsPerHour: number });
         return acc;
       },
-      {} as Record<string, Post[]>,
+      {} as Record<string, (Post & { engagementsPerHour: number })[]>,
     );
 
     return grouped;
