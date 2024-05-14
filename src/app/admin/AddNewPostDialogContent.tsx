@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -103,7 +104,8 @@ function AddNewPostDialogContent({
 }: {
   onSubmit: (data: PostValType) => void;
   onExistingPostSubmit: (
-    data: z.infer<typeof existingPostSchema> & { postId: string },
+    data: z.infer<typeof existingPostSchema>,
+    postId: string,
   ) => void;
 }) {
   const form = useForm<PostValType>({
@@ -168,53 +170,48 @@ function AddNewPostDialogContent({
         </AccordionItem>
       </Accordion>
       {selectedPost ? (
-        <>
-          <Form {...existingPostForm}>
-            <div className=" flex flex-wrap gap-2">
-              <LabelValue label="Title" value={selectedPost.title} />
-              <LabelValue label="URL" value={selectedPost.URL} />
-              <LabelValue
-                label="Post Username"
-                value={selectedPost.postUsername}
-              />
-              <LabelValue
-                label="Thumbnail URL"
-                value={selectedPost.thumbnailURL}
-              />
-            </div>
+        <Form {...existingPostForm}>
+          <div className=" flex flex-wrap gap-2">
+            <LabelValue label="Title" value={selectedPost.title} />
+            <LabelValue label="URL" value={selectedPost.URL} />
+            <LabelValue
+              label="Post Username"
+              value={selectedPost.postUsername}
+            />
+            <LabelValue
+              label="Thumbnail URL"
+              value={selectedPost.thumbnailURL}
+            />
+          </div>
 
-            <form
-              className=" flex flex-col justify-center gap-2"
-              onSubmit={existingPostForm.handleSubmit((data) => {
-                onExistingPostSubmit({
-                  ...data,
-                  postId: selectedExistingPostId,
-                });
-              })}
-            >
-              <FormField
-                name="engagementsAmount"
-                control={existingPostForm.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Engagements Amount</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        className=" h-4 w-20"
-                        placeholder="shadcn"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <form
+            className=" flex flex-col justify-center gap-2"
+            onSubmit={existingPostForm.handleSubmit((data) =>
+              onExistingPostSubmit(data, selectedExistingPostId),
+            )}
+          >
+            <FormField
+              name="engagementsAmount"
+              control={existingPostForm.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Engagements amount</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      className=" h-4 w-20"
+                      placeholder="Engagements amount"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <Button type="submit">Submit</Button>
-            </form>
-          </Form>
-        </>
+            <Button type="submit">Submit</Button>
+          </form>
+        </Form>
       ) : (
         <Form {...form}>
           <form
@@ -229,7 +226,7 @@ function AddNewPostDialogContent({
                   <FormItem>
                     <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input className=" h-4" placeholder="shadcn" {...field} />
+                      <Input placeholder="Title" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -242,7 +239,7 @@ function AddNewPostDialogContent({
                   <FormItem>
                     <FormLabel>URL</FormLabel>
                     <FormControl>
-                      <Input className=" h-4" placeholder="shadcn" {...field} />
+                      <Input placeholder="URL" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -253,9 +250,9 @@ function AddNewPostDialogContent({
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Post Username</FormLabel>
+                    <FormLabel>Post username</FormLabel>
                     <FormControl>
-                      <Input className=" h-4" placeholder="shadcn" {...field} />
+                      <Input placeholder="Post username" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -268,7 +265,7 @@ function AddNewPostDialogContent({
                   <FormItem>
                     <FormLabel>Post User Logo URL</FormLabel>
                     <FormControl>
-                      <Input className=" h-4" placeholder="shadcn" {...field} />
+                      <Input placeholder="Post user logo URL" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -283,7 +280,7 @@ function AddNewPostDialogContent({
                 <FormItem>
                   <FormLabel>Thumbnail URL</FormLabel>
                   <FormControl>
-                    <Input className=" h-4" placeholder="shadcn" {...field} />
+                    <Input placeholder="Thumbnail URL" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -296,8 +293,9 @@ function AddNewPostDialogContent({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Media Icon</FormLabel>
+                  <FormDescription>{`Supported icons: "Instagram", "Facebook", "Twitter", "Tiktok". Just enter the name`}</FormDescription>
                   <FormControl>
-                    <Input className=" h-4" placeholder="shadcn" {...field} />
+                    <Input placeholder="Media Icon" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -310,11 +308,7 @@ function AddNewPostDialogContent({
                 <FormItem>
                   <FormLabel>Text</FormLabel>
                   <FormControl>
-                    <Textarea
-                      className=" h-4"
-                      placeholder="shadcn"
-                      {...field}
-                    />
+                    <Textarea placeholder="Text of the news" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -329,8 +323,8 @@ function AddNewPostDialogContent({
                   <FormControl>
                     <Input
                       type="number"
-                      className=" h-4 w-20"
-                      placeholder="shadcn"
+                      className=" w-20"
+                      placeholder="Engagements amount"
                       {...field}
                     />
                   </FormControl>

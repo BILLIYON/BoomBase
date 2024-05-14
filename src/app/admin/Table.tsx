@@ -49,8 +49,8 @@ function DataTable<TData extends { id: string | number }, TValue>({
   });
 
   return (
-    <Table className={className}>
-      <TableHeader>
+    <Table className={cn("mt-2", className)}>
+      <TableHeader className=" sticky top-0 z-10 bg-white">
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (

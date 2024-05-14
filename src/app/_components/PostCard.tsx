@@ -141,10 +141,12 @@ function PostCard({ post, variant, className }: PostCardProps) {
   );
   return (
     <>
-      {variant === "small" ? (
-        <Link href={`/posts/${post.id}`}>{content}</Link>
+      {post.URL ? (
+        <Link href={post.URL} target="_blank">
+          {content}
+        </Link>
       ) : (
-        content
+        <Link href={`/posts/${post.id}`}>{content}</Link>
       )}
     </>
   );

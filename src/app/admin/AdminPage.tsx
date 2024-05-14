@@ -1,18 +1,11 @@
 "use client";
 
-import { RowSelectionState } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
-import { api } from "~/trpc/react";
-import { SignOutButton } from "../_components/SignInButton";
-import { DataTable } from "./Table";
-import {
-  allTagsColumns,
-  categoriesColumns,
-  postsColumns,
-  statisticsDatumsColumns,
-  tagsColumns,
-} from "./TableColumns";
-import { useStore } from "./store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "~/components/ui/button";
+import { Combobox } from "~/components/ui/combobox";
 import {
   Form,
   FormControl,
@@ -20,86 +13,95 @@ import {
   FormItem,
   FormMessage,
 } from "~/components/ui/form";
-import * as z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
-import { Combobox } from "~/components/ui/combobox";
+import { api } from "~/trpc/react";
+import { SignOutButton } from "../_components/SignInButton";
+import { DataTable } from "./Table";
+import {
+  allTagsColumns,
+  categoriesColumns,
+  categorySchema,
+  postsColumns,
+  statisticsDatumsColumns,
+  tagsColumns,
+} from "./TableColumns";
+import { useStore } from "./store";
+import { cn } from "~/lib/utils";
 
 function AdminPage() {
-  const utils = api.useUtils();
-  const [newTagName, setNewTagName] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<
-    string | undefined
-  >("");
-  const [newCategory, setNewCategory] = useState("");
-
-  const { data: tags, isPending } = api.tag.getAll.useQuery();
-
-  const { mutate: createTag } = api.tag.create.useMutation({
-    onSettled: async () => {
-      await utils.tag.getAll.invalidate();
-    },
-  });
-
-  const { mutate: createCategory } = api.category.create.useMutation({
-    onSettled: async () => {
-      await utils.category.getAll.invalidate();
-    },
-  });
-
-  const { data: categories } = api.category.getAll.useQuery();
-
-  const setDelectedDatumId = useStore((state) => state.setSelectedDatumId);
-  const setSelectedTagId = useStore((state) => state.setSelectedTagId);
-  const selectedDatumId = useStore((state) => state.selectedDatumId);
   const selectedTagId = useStore((state) => state.selectedTagId);
 
-  console.log("categories", categories);
-
   return (
-    <main>
+    <main className=" prose max-w-none px-5 py-2">
       <SignOutButton />
-
-      <h1>Admin Page</h1>
+      <h3 className=" text-center text-lg text-slate-700">Admin Page</h3>
       <section className=" flex gap-4 ">
-        <AllTags />
-        <Categories />
+        <TableCard title="List of all tags in the system" className=" flex-1">
+          <AllTags />
+        </TableCard>
+        <TableCard
+          title="List of all categories in the system"
+          className=" flex-1"
+        >
+          <Categories />
+        </TableCard>
       </section>
 
-      <section className=" flex gap-4 ">
-        <DatumsTable />
-        <TagList />
+      <section className=" mt-3 flex gap-4">
+        <TableCard title="Datums" className=" flex-1">
+          <DatumsTable />
+        </TableCard>
+        <TableCard title="Trending tags at the time of selected datum">
+          <TagList />
+        </TableCard>
       </section>
       {selectedTagId ? <LatestPostList /> : null}
-
-      {/* <LatestTagsTable />
-      <TagList />
-      <CategoryList /> */}
     </main>
   );
 }
 
 function Categories() {
-  const utils = api.useUtils();
   const { data: categories } = api.category.getAll.useQuery();
 
-  const { mutate: createCategory } = api.category.create.useMutation({
+  const utils = api.useUtils();
+  const { mutate: addCategory } = api.category.create.useMutation({
     onSettled: async () => {
       await utils.category.getAll.invalidate();
     },
   });
 
+  const form = useForm<z.infer<typeof categorySchema>>({
+    resolver: zodResolver(categorySchema),
+  });
+
   return (
-    <DataTable
-      data={categories ?? []}
-      columns={categoriesColumns}
-      showFooter={true}
-      onRowClick={(category) => {
-        console.log("category", category);
-      }}
-    />
+    <>
+      <DataTable data={categories ?? []} columns={categoriesColumns} />
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit((data) => {
+            addCategory(data);
+          })}
+          className=" flex items-center gap-2"
+        >
+          <FormField
+            name="name"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input placeholder="shadcn" {...field} />
+                </FormControl>
+                <FormMessage className=" max-w-32 text-xs" />
+              </FormItem>
+            )}
+          />
+          <Button size={"sm"} type="submit">
+            Add New
+          </Button>
+        </form>
+      </Form>
+    </>
   );
 }
 
@@ -110,6 +112,29 @@ const tagSchema = z.object({
     name: z.string().min(1),
   }),
 });
+
+function TableCard({
+  children,
+  title,
+  className,
+}: {
+  children: React.ReactNode;
+  title?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        " flex flex-col justify-between gap-2 border border-gray-200 p-2",
+        className,
+      )}
+    >
+      {title && <h5>{title}</h5>}
+
+      {children}
+    </div>
+  );
+}
 
 function AllTags() {
   const { data: tags } = api.tag.getAll.useQuery();
@@ -130,7 +155,7 @@ function AllTags() {
 
   return (
     <div className=" flex flex-col gap-2">
-      <DataTable data={tags ?? []} columns={allTagsColumns} showFooter={true} />
+      <DataTable data={tags ?? []} columns={allTagsColumns} />
       <Form {...form}>
         <form
           className=" flex gap-2"
@@ -168,6 +193,7 @@ function AllTags() {
               <FormItem>
                 <FormControl>
                   <Combobox
+                    itemName="category"
                     className=" h-8"
                     items={
                       categories?.map((c) => ({
@@ -203,17 +229,40 @@ function DatumsTable() {
   const setSelectedDatumId = useStore((state) => state.setSelectedDatumId);
   const selectedDatumId = useStore((state) => state.selectedDatumId);
 
+  const utils = api.useUtils();
+  const setSelectedTagId = useStore((state) => state.setSelectedTagId);
+  const { mutateAsync: addNewDatumAsync } =
+    api.statistictDatum.addNew.useMutation({
+      onSettled: async () => {
+        await utils.statistictDatum.invalidate();
+      },
+    });
+
   return (
-    <DataTable
-      data={datums ?? []}
-      selectedRowId={selectedDatumId ?? ""}
-      //@ts-expect-error tanstack types are weird
-      columns={statisticsDatumsColumns}
-      showFooter={true}
-      onRowClick={(datum) => {
-        setSelectedDatumId(datum.id);
-      }}
-    />
+    <>
+      <DataTable
+        data={datums ?? []}
+        selectedRowId={selectedDatumId ?? ""}
+        //@ts-expect-error tanstack types are weird
+        columns={statisticsDatumsColumns}
+        onRowClick={(datum) => {
+          setSelectedDatumId(datum.id);
+        }}
+      />
+      <Button
+        size={"sm"}
+        className=" w-fit"
+        onClick={async () => {
+          setSelectedTagId("");
+          const createdDatum = await addNewDatumAsync({
+            dateTime: new Date().toISOString(),
+          });
+          setSelectedDatumId(createdDatum.id);
+        }}
+      >
+        Add New
+      </Button>
+    </>
   );
 }
 
@@ -233,17 +282,52 @@ function TagList() {
     }
   }, [tags, isPending, setSelectedTagId]);
 
+  const { data: allTags } = api.tag.getAll.useQuery(undefined, {
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const allNotAddedTags = allTags?.filter(
+    (tag) => !tags?.find((t) => t.id === tag.id),
+  );
+
+  const utils = api.useUtils();
+
+  const { mutate: addTagToDatum } =
+    api.statistictDatum.addTagToDatum.useMutation({
+      onSettled: async () => {
+        await utils.tag.getByDatumId.invalidate();
+      },
+    });
+
   return (
-    <DataTable
-      //@ts-expect-error tanstack types are weird
-      columns={tagsColumns}
-      data={tags ?? []}
-      selectedRowId={selectedTagId ?? ""}
-      showFooter={true}
-      onRowClick={(tag) => {
-        setSelectedTagId(tag.id);
-      }}
-    />
+    <>
+      <DataTable
+        //@ts-expect-error tanstack types are weird
+        columns={tagsColumns}
+        data={tags ?? []}
+        selectedRowId={selectedTagId ?? ""}
+        onRowClick={(tag) => {
+          setSelectedTagId(tag.id);
+        }}
+      />
+
+      <Combobox
+        itemName="tag"
+        value=""
+        onSetValue={(value) => {
+          if (!selectedDatumId) return;
+          addTagToDatum({ tagId: value.id, datumId: selectedDatumId });
+          setSelectedTagId(value.id);
+        }}
+        items={
+          allNotAddedTags?.map((tag) => ({
+            label: tag.name,
+            value: tag.name,
+            id: tag.id,
+          })) ?? []
+        }
+      />
+    </>
   );
 }
 

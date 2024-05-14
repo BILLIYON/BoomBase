@@ -24,11 +24,13 @@ export function Combobox({
   value,
   onSetValue,
   className,
+  itemName,
 }: {
   items: { value: string; label: React.ReactNode; id: string }[];
   onSetValue: (item: { id: string; name: string }) => void;
   value: string;
   className?: string;
+  itemName?: string;
 }) {
   const [open, setOpen] = React.useState(false);
   // const [value, setValue] = React.useState("");
@@ -44,7 +46,7 @@ export function Combobox({
         >
           {value
             ? items.find((item) => item.value === value)?.label
-            : "Select item..."}
+            : `Select ${itemName ?? "item"}...`}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

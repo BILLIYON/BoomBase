@@ -150,33 +150,38 @@ export function AddNewPostDialog({
   const selectedTagId = useStore((state) => state.selectedTagId);
   const selectedDatumId = useStore((state) => state.selectedDatumId);
 
+  console.log("selectedDatumId", selectedDatumId);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className=" w-3/4 max-w-screen-sm">
+      <DialogContent className=" max-h-screen w-3/4 max-w-screen-sm overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <AddNewPostDialogContent
-          onSubmit={(data) => {
-            if (!selectedTagId || !selectedDatumId) return;
-            createNewPost({
-              ...data,
-              engagementsAmount: Number(data.engagementsAmount),
-              tagId: selectedTagId,
-              datumId: selectedDatumId,
-            });
-          }}
-          onExistingPostSubmit={(data) => {
-            if (!selectedDatumId) return;
-            addExistingPost({
-              ...data,
-              engagementsAmount: Number(data.engagementsAmount),
-              datumId: selectedDatumId,
-            });
-          }}
-        />
+        {selectedDatumId && (
+          <AddNewPostDialogContent
+            onSubmit={(data) => {
+              console.log("selectedTagId", selectedTagId);
+              if (!selectedTagId) return;
+              createNewPost({
+                ...data,
+                engagementsAmount: Number(data.engagementsAmount),
+                tagId: selectedTagId,
+                datumId: selectedDatumId,
+              });
+            }}
+            onExistingPostSubmit={(data, postId) => {
+              addExistingPost({
+                ...data,
+                postId,
+                engagementsAmount: Number(data.engagementsAmount),
+                datumId: selectedDatumId,
+              });
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
