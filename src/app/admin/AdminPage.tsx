@@ -75,7 +75,7 @@ function Categories() {
   });
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <DataTable data={categories ?? []} columns={categoriesColumns} />
       <Form {...form}>
         <form
@@ -101,7 +101,7 @@ function Categories() {
           </Button>
         </form>
       </Form>
-    </>
+    </div>
   );
 }
 
@@ -178,7 +178,7 @@ function AllTags() {
                 <FormControl>
                   <Input
                     className=" h-8 w-40"
-                    placeholder="shadcn"
+                    placeholder="Enter tag name"
                     {...field}
                   />
                 </FormControl>

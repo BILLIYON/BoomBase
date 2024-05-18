@@ -151,7 +151,6 @@ function AddNewPostDialog({
   const selectedTagId = useStore((state) => state.selectedTagId);
   const selectedDatumId = useStore((state) => state.selectedDatumId);
 
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -187,11 +186,16 @@ function AddNewPostDialog({
   );
 }
 
- function AreYouSureDialog({title, description, trigger, okTrigger}: {
-  title: React.ReactNode,
-  description: React.ReactNode,
-  trigger: React.ReactNode,
-  okTrigger: React.ReactNode,
+function AreYouSureDialog({
+  title,
+  description,
+  trigger,
+  okTrigger,
+}: {
+  title: React.ReactNode;
+  description: React.ReactNode;
+  trigger: React.ReactNode;
+  okTrigger: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -204,13 +208,11 @@ function AddNewPostDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-        <DialogClose asChild>
-          {okTrigger}
-        </DialogClose>
-        <DialogClose asChild>
-          <Button>Cancel</Button> 
-        </DialogClose>
-      </DialogFooter>
+          <DialogClose asChild>{okTrigger}</DialogClose>
+          <DialogClose asChild>
+            <Button variant={"secondary"}>Cancel</Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -228,5 +230,5 @@ export {
   DialogTitle,
   DialogDescription,
   AreYouSureDialog,
-  AddNewPostDialog
-  };
+  AddNewPostDialog,
+};

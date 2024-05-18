@@ -86,7 +86,6 @@ const statisticsDatumsColumns = [
           }
           okTrigger={
             <Button
-              size={"sm"}
               variant={ctx.row.original.isPublished ? "destructive" : "default"}
               onClick={() => {
                 setPublishedStatus({
@@ -219,7 +218,7 @@ const postsColumns = [
         height={100}
         width={100}
         alt={row.row.original.title}
-        className=" max-h-20"
+        className=" m-0 max-h-20"
       />
     ),
   }),
