@@ -5,6 +5,8 @@ import { Inter } from "next/font/google";
 import { TRPCReactProvider } from "~/trpc/react";
 import Link from "next/link";
 
+import { GoogleAnalytics } from "@next/third-parties/google";
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -31,6 +33,7 @@ export default function RootLayout({
         </nav>
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
+      <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS!} />
     </html>
   );
 }
