@@ -49,6 +49,9 @@ export const postRouter = createTRPCRouter({
   getLatestPosts: publicProcedure.query(async ({ ctx }) => {
     const lastTwoDatums = await ctx.db.datum.findMany({
       take: 2,
+      where: {
+        isPublished: true,
+      },
       orderBy: {
         dateTime: "desc",
       },
@@ -74,8 +77,6 @@ export const postRouter = createTRPCRouter({
         },
       },
     });
-
-    console.log("lastTwoDatums", lastTwoDatums);
 
     const prevPosts =
       lastTwoDatums[1]?.postEngagements?.map((postEngagement) => ({

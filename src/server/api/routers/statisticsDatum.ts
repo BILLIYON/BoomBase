@@ -5,6 +5,9 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 export const statisticsDatumRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
     const response = await ctx.db.datum.findMany({
+      orderBy: {
+        dateTime: "desc",
+      },
       include: {
         _count: {
           select: {
@@ -36,6 +39,37 @@ export const statisticsDatumRouter = createTRPCRouter({
     .mutation(({ ctx, input }) =>
       ctx.db.datum.delete({ where: { id: input.id } }),
     ),
+
+  setDatumPublishedStatus: protectedProcedure
+    .input(
+      z.object({
+        isPublished: z.boolean(),
+        id: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.datum.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          isPublished: input.isPublished,
+        },
+      });
+    }),
+
+  unpublishDatum: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.datum.update({
+        where: {
+          id: input,
+        },
+        data: {
+          isPublished: false,
+        },
+      });
+    }),
 
   addTagToDatum: protectedProcedure
     .input(

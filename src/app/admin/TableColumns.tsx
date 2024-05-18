@@ -1,25 +1,15 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import type { Category, Datum, Post } from "@prisma/client";
 import { createColumnHelper } from "@tanstack/react-table";
 import { LinkIcon, TrashIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "~/components/ui/button";
-import { Combobox } from "~/components/ui/combobox";
-import { AddNewPostDialog } from "~/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
+import { AddNewPostDialog, AreYouSureDialog } from "~/components/ui/dialog";
 import { api } from "~/trpc/react";
 import type { WithId } from "~/types/common.types";
 import { useStore } from "./store";
+import { format } from "date-fns";
 
 export type StatDatumWithPostsAndTags = Datum & {
   postsCount: number;
@@ -33,7 +23,7 @@ const statisticsDatumsColumns = [
   statisticsDatumColumnsHelper.accessor("dateTime", {
     id: "datetime",
     header: "DateTime",
-    cell: (row) => row.getValue().toISOString(),
+    cell: (row) => format(row.getValue().toISOString(), "yyyy-MMM-dd HH:mm"),
   }),
   statisticsDatumColumnsHelper.accessor("postsCount", {
     id: "posts",
@@ -44,6 +34,74 @@ const statisticsDatumsColumns = [
     id: "tags",
     header: "Tags",
     cell: (row) => row.getValue(),
+  }),
+  statisticsDatumColumnsHelper.display({
+    id: "actions",
+    header: "Actions",
+    cell: function Cell(ctx) {
+      const utils = api.useUtils();
+
+      const { mutate: setPublishedStatus } =
+        api.statistictDatum.setDatumPublishedStatus.useMutation({
+          onMutate: async ({ id, isPublished }) => {
+            await utils.statistictDatum.getAll.cancel();
+            const prevData = utils.statistictDatum.getAll.getData();
+            utils.statistictDatum.getAll.setData(undefined, (old) => {
+              return old?.map((d) => {
+                if (d.id === id) {
+                  return {
+                    ...d,
+                    isPublished,
+                  };
+                }
+                return d;
+              });
+            });
+
+            return { prevData };
+          },
+          onError: (error, variables, context) => {
+            if (context?.prevData) {
+              utils.statistictDatum.getAll.setData(undefined, context.prevData);
+            }
+          },
+          onSettled: async () => {
+            await utils.statistictDatum.getAll.invalidate();
+          },
+        });
+
+      const actionName = ctx.row.original.isPublished ? "Unpublish" : "Publish";
+
+      return (
+        <AreYouSureDialog
+          title={`${actionName} datum`}
+          description={`Are you sure thet you want to ${actionName.toLowerCase()} this datum?`}
+          trigger={
+            <Button
+              variant={ctx.row.original.isPublished ? "ghost" : "default"}
+              size={"xs"}
+            >
+              {actionName}
+            </Button>
+          }
+          okTrigger={
+            <Button
+              size={"sm"}
+              variant={ctx.row.original.isPublished ? "destructive" : "default"}
+              onClick={() => {
+                setPublishedStatus({
+                  id: ctx.row.original.id,
+                  isPublished: !ctx.row.original.isPublished,
+                });
+              }}
+            >
+              {actionName}
+            </Button>
+          }
+        />
+      );
+    },
+    size: 100,
   }),
 ];
 

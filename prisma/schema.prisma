@@ -16,10 +16,11 @@ datasource db {
 }
 
 model Datum {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    dateTime  DateTime
+    id          String   @id @default(cuid())
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+    dateTime    DateTime
+    isPublished Boolean  @default(false)
 
     tags            Tag[]
     postEngagements PostEngagement[]

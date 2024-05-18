@@ -8,6 +8,7 @@ import { cn } from "~/lib/utils";
 import { AddNewPostDialogContent } from "~/app/admin/AddNewPostDialogContent";
 import { api } from "~/trpc/react";
 import { useStore } from "~/app/admin/store";
+import { Button } from "./button";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -111,7 +112,7 @@ const DialogDescription = React.forwardRef<
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
-export function AddNewPostDialog({
+function AddNewPostDialog({
   title,
   description,
   trigger,
@@ -150,7 +151,6 @@ export function AddNewPostDialog({
   const selectedTagId = useStore((state) => state.selectedTagId);
   const selectedDatumId = useStore((state) => state.selectedDatumId);
 
-  console.log("selectedDatumId", selectedDatumId);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -187,6 +187,35 @@ export function AddNewPostDialog({
   );
 }
 
+ function AreYouSureDialog({title, description, trigger, okTrigger}: {
+  title: React.ReactNode,
+  description: React.ReactNode,
+  trigger: React.ReactNode,
+  okTrigger: React.ReactNode,
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className=" max-h-screen w-3/4 max-w-screen-sm overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+        <DialogClose asChild>
+          {okTrigger}
+        </DialogClose>
+        <DialogClose asChild>
+          <Button>Cancel</Button> 
+        </DialogClose>
+      </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export {
   Dialog,
   DialogPortal,
@@ -198,4 +227,6 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-};
+  AreYouSureDialog,
+  AddNewPostDialog
+  };
